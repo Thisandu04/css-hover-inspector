@@ -1,0 +1,13 @@
+{
+  "name": "css-hover-inspector",
+  "version": "1.0.0",
+  "description": "A live CSS inspector overlay — Chrome extension + bookmarklet, sharing one engine.",
+  "type": "module",
+  "scripts": {
+    "build:bookmarklet": "node bookmarklet/build.js",
+    "watch:bookmarklet": "node bookmarklet/build.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
