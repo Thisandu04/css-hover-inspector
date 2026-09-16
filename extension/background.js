@@ -1,4 +1,3 @@
-// extension/background.js
 const tabStates = new Map(); // tabId -> boolean
 
 function setBadge(tabId, isOn) {
@@ -39,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Ctrl+Shift+H
+// Ctrl+Shift+h
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'toggle-inspector') {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
