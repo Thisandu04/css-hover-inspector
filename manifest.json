@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "CSS Hover Inspector",
+  "version": "1.0.0",
+  "description": "Hover any element to see its live computed CSS — no DevTools required.",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "extension/popup.html"
+  },
+  "background": {
+    "service_worker": "extension/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["extension/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["core/inspector.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "toggle-inspector": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "Toggle CSS Hover Inspector on/off"
+    }
+  }
+}
