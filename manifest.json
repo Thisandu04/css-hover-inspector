@@ -27,8 +27,8 @@
   "commands": {
     "toggle-inspector": {
       "suggested_key": {
-        "default": "Ctrl+Shift+H",
-        "mac": "Command+Shift+H"
+        "default": "Ctrl+Shift+h",
+        "mac": "Command+Shift+h"
       },
       "description": "Toggle CSS Hover Inspector on/off"
     }
