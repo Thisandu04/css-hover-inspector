@@ -1,4 +1,3 @@
-// extension/content-script.js
 let inspectorActive = false;
 
 chrome.runtime.onMessage.addListener((message) => {
