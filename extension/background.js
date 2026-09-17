@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Ctrl+Shift+h
+// Ctrl+Shift+H
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'toggle-inspector') {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
