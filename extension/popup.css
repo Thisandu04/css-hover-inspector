@@ -1,0 +1,135 @@
+:root {
+  --accent: #6366f1;
+  --accent-dim: #6366f133;
+  --bg: #17181f;
+  --bg-elevated: #1f2029;
+  --text: #e4e4e7;
+  --text-dim: #9797a3;
+  --border: #2c2d38;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 280px;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+.popup__header {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.popup__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup__logo-icon {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.popup__logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.popup__tagline {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.popup__body {
+  padding: 16px 18px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-text--off { color: var(--text-dim); }
+.status-text--on { color: var(--accent); }
+
+.switch {
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--accent);
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.switch[aria-checked="true"] .switch__knob {
+  transform: translateX(18px);
+}
+
+.hint {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hint__key {
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.hint__text {
+  color: var(--text-dim);
+}
+
+.popup__footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+
+.popup__version {
+  font-size: 11px;
+  color: var(--text-dim);
+}
