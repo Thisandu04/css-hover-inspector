@@ -1,13 +1,16 @@
 let inspectorInstance = null;
+let defaultProps = [];
 
 async function getInspector() {
   if (!inspectorInstance) {
     const moduleUrl = chrome.runtime.getURL('core/inspector.js');
-    const { createInspector } = await import(moduleUrl);
+    const { createInspector, DEFAULT_ENABLED_PROPS } = await import(moduleUrl);
+    defaultProps = DEFAULT_ENABLED_PROPS;
     inspectorInstance = createInspector();
 
-    const { theme } = await chrome.storage.local.get('theme');
+    const { theme, properties } = await chrome.storage.local.get(['theme', 'properties']);
     inspectorInstance.setTheme(theme || 'dark');
+    inspectorInstance.setProperties(properties || defaultProps);
   }
   return inspectorInstance;
 }
@@ -21,7 +24,7 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.theme && inspectorInstance) {
-    inspectorInstance.setTheme(changes.theme.newValue);
-  }
+  if (area !== 'local' || !inspectorInstance) return;
+  if (changes.theme) inspectorInstance.setTheme(changes.theme.newValue);
+  if (changes.properties) inspectorInstance.setProperties(changes.properties.newValue || defaultProps);
 });

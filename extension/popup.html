@@ -33,6 +33,12 @@
         </div>
       </div>
 
+            <button class="settings-toggle" id="settings-toggle" aria-expanded="false">
+        Customize properties
+        <span class="settings-toggle__chevron">▾</span>
+      </button>
+      <div class="settings-panel" id="settings-panel" hidden></div>
+
       <div class="hint">
         <span class="hint__key" id="shortcut-display">Ctrl+Shift+H</span>
         <span class="hint__text">to toggle from anywhere</span>
@@ -44,6 +50,6 @@
     </footer>
   </div>
 
-  <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
 </body>
 </html>
