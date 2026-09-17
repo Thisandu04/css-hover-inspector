@@ -138,9 +138,9 @@ export function createInspector() {
   function renderPanel(el, computed) {
     panel.classList.toggle('panel--pinned', pinned);
 
-    const rows = INSPECTED_PROPERTIES.map(([prop, label]) => {
+        const rows = INSPECTED_PROPERTIES.map(([prop, label]) => {
       const value = computed.getPropertyValue(prop) || '—';
-      return `<div class="panel__row" data-value="${value.replace(/"/g, '&quot;')}">
+      return `<div class="panel__row" data-prop="${prop}" data-value="${value.replace(/"/g, '&quot;')}">
         <span class="panel__prop">${label}</span>
         <span class="panel__value">${value}</span>
       </div>`;
@@ -157,7 +157,9 @@ export function createInspector() {
     const row = e.target.closest('.panel__row');
     if (!row) return;
 
-    navigator.clipboard.writeText(row.dataset.value).then(() => {
+    const declaration = `${row.dataset.prop}: ${row.dataset.value};`;
+
+    navigator.clipboard.writeText(declaration).then(() => {
       const valueEl = row.querySelector('.panel__value');
       const original = valueEl.textContent;
       valueEl.textContent = 'Copied!';
