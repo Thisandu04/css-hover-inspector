@@ -1,6 +1,3 @@
-const HIGHLIGHT_FILL = 'rgba(99, 102, 241, 0.25)';
-const HIGHLIGHT_BORDER = '#6366f1';
-
 const INSPECTED_PROPERTIES = [
   ['display', 'Display'],
   ['position', 'Position'],
@@ -21,24 +18,43 @@ const INSPECTED_PROPERTIES = [
 
 export function createInspector() {
   let enabled = false;
+  let pinned = false;
   let currentTarget = null;
   let shadowHost, shadowRoot, highlightBox, panel;
 
   function buildUI() {
     shadowHost = document.createElement('div');
     shadowHost.id = 'css-hover-inspector-root';
-    // pointer-events: none is what lets mouseover pass THROUGH to the real
-    // page elements underneath our overlay — critical, not optional.
+    shadowHost.dataset.theme = 'dark';
     shadowHost.style.cssText =
       'position:fixed; top:0; left:0; width:0; height:0; z-index:2147483647; pointer-events:none;';
     shadowRoot = shadowHost.attachShadow({ mode: 'open' });
 
     const style = document.createElement('style');
     style.textContent = `
+      :host {
+        --bg: #17181f;
+        --bg-elevated: #1f2029;
+        --border: #2c2d38;
+        --text: #e4e4e7;
+        --text-dim: #9797a3;
+        --accent: #6366f1;
+        --accent-dim: rgba(99, 102, 241, 0.25);
+        --success: #22c55e;
+      }
+      :host([data-theme="light"]) {
+        --bg: #ffffff;
+        --bg-elevated: #f4f4f6;
+        --border: #e2e2e8;
+        --text: #18181b;
+        --text-dim: #6b6b76;
+        --accent: #4f46e5;
+        --accent-dim: rgba(79, 70, 229, 0.16);
+      }
       .highlight-box {
         position: fixed;
-        background: ${HIGHLIGHT_FILL};
-        border: 1px solid ${HIGHLIGHT_BORDER};
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
         box-sizing: border-box;
         border-radius: 2px;
         pointer-events: none;
@@ -47,9 +63,9 @@ export function createInspector() {
       .panel {
         position: fixed;
         pointer-events: none;
-        background: #17181f;
-        color: #e4e4e7;
-        border: 1px solid #2c2d38;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
         border-radius: 10px;
         padding: 10px 12px;
         font-family: ui-monospace, "SF Mono", Consolas, monospace;
@@ -61,27 +77,44 @@ export function createInspector() {
         display: none;
       }
       .panel__tag {
-        color: #6366f1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--accent);
         font-weight: 700;
         font-size: 12px;
         margin-bottom: 6px;
         padding-bottom: 6px;
-        border-bottom: 1px solid #2c2d38;
+        border-bottom: 1px solid var(--border);
+      }
+      .panel__pin-hint {
+        font-size: 9px;
+        font-weight: 500;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
       }
       .panel__row {
         display: flex;
         justify-content: space-between;
         gap: 12px;
+        padding: 2px 4px;
+        margin: 0 -4px;
+        border-radius: 4px;
       }
-      .panel__prop { color: #9797a3; white-space: nowrap; }
+      .panel--pinned .panel__row { cursor: pointer; }
+      .panel--pinned .panel__row:hover { background: var(--bg-elevated); }
+      .panel__prop { color: var(--text-dim); white-space: nowrap; }
       .panel__value {
-        color: #e4e4e7;
+        color: var(--text);
         text-align: right;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         max-width: 170px;
       }
+      .panel__value--copied { color: var(--success) !important; }
     `;
 
     highlightBox = document.createElement('div');
@@ -89,6 +122,7 @@ export function createInspector() {
 
     panel = document.createElement('div');
     panel.className = 'panel';
+    panel.addEventListener('click', handlePanelClick);
 
     shadowRoot.append(style, highlightBox, panel);
     document.documentElement.appendChild(shadowHost);
@@ -102,62 +136,127 @@ export function createInspector() {
   }
 
   function renderPanel(el, computed) {
+    panel.classList.toggle('panel--pinned', pinned);
+
     const rows = INSPECTED_PROPERTIES.map(([prop, label]) => {
       const value = computed.getPropertyValue(prop) || '—';
-      return `<div class="panel__row">
+      return `<div class="panel__row" data-value="${value.replace(/"/g, '&quot;')}">
         <span class="panel__prop">${label}</span>
-        <span class="panel__value" title="${value}">${value}</span>
+        <span class="panel__value">${value}</span>
       </div>`;
     }).join('');
 
-    panel.innerHTML = `<div class="panel__tag">${describeElement(el)}</div>${rows}`;
+    const hint = pinned
+      ? '<span class="panel__pin-hint">📌 click row to copy · Esc to release</span>'
+      : '';
+    panel.innerHTML = `<div class="panel__tag"><span>${describeElement(el)}</span>${hint}</div>${rows}`;
+  }
+
+  function handlePanelClick(e) {
+    if (!pinned) return;
+    const row = e.target.closest('.panel__row');
+    if (!row) return;
+
+    navigator.clipboard.writeText(row.dataset.value).then(() => {
+      const valueEl = row.querySelector('.panel__value');
+      const original = valueEl.textContent;
+      valueEl.textContent = 'Copied!';
+      valueEl.classList.add('panel__value--copied');
+      setTimeout(() => {
+        valueEl.textContent = original;
+        valueEl.classList.remove('panel__value--copied');
+      }, 900);
+    }).catch((err) => console.warn('[CSS Hover Inspector] clipboard write failed:', err));
   }
 
   function positionHighlight(el) {
     const rect = el.getBoundingClientRect();
     Object.assign(highlightBox.style, {
-      left: `${rect.left}px`,
-      top: `${rect.top}px`,
-      width: `${rect.width}px`,
-      height: `${rect.height}px`,
+      left: `${rect.left}px`, top: `${rect.top}px`,
+      width: `${rect.width}px`, height: `${rect.height}px`,
     });
   }
 
-  function positionPanel(mouseX, mouseY) {
+  function positionPanelAtCursor(mouseX, mouseY) {
     const margin = 16;
-    const panelRect = panel.getBoundingClientRect();
-    let x = mouseX + margin;
-    let y = mouseY + margin;
-
-    if (x + panelRect.width > window.innerWidth) x = mouseX - panelRect.width - margin;
-    if (y + panelRect.height > window.innerHeight) y = mouseY - panelRect.height - margin;
-
+    const r = panel.getBoundingClientRect();
+    let x = mouseX + margin, y = mouseY + margin;
+    if (x + r.width > window.innerWidth) x = mouseX - r.width - margin;
+    if (y + r.height > window.innerHeight) y = mouseY - r.height - margin;
     panel.style.left = `${Math.max(8, x)}px`;
     panel.style.top = `${Math.max(8, y)}px`;
   }
 
-  function handleMouseOver(e) {
-    if (!enabled) return;
-    const el = e.target;
-    if (el === currentTarget) return;
-    currentTarget = el;
+  function positionPanelNearElement(el) {
+    const rect = el.getBoundingClientRect();
+    const margin = 12;
+    const r = panel.getBoundingClientRect();
+    let x = rect.right + margin, y = rect.top;
+    if (x + r.width > window.innerWidth) x = rect.left - r.width - margin;
+    if (y + r.height > window.innerHeight) y = window.innerHeight - r.height - margin;
+    panel.style.left = `${Math.max(8, x)}px`;
+    panel.style.top = `${Math.max(8, y)}px`;
+  }
 
+  function showFor(el) {
     const computed = getComputedStyle(el);
     positionHighlight(el);
     renderPanel(el, computed);
     highlightBox.style.display = 'block';
     panel.style.display = 'block';
-    positionPanel(e.clientX, e.clientY);
+  }
+
+  function handleMouseOver(e) {
+    if (!enabled || pinned) return;
+    if (e.target === currentTarget) return;
+    currentTarget = e.target;
+    showFor(currentTarget);
+    positionPanelAtCursor(e.clientX, e.clientY);
   }
 
   function handleMouseMove(e) {
-    if (!enabled || !currentTarget) return;
-    positionPanel(e.clientX, e.clientY);
+    if (!enabled || pinned || !currentTarget) return;
+    positionPanelAtCursor(e.clientX, e.clientY);
   }
 
   function handleScroll() {
     if (!enabled || !currentTarget) return;
     positionHighlight(currentTarget);
+    if (pinned) positionPanelNearElement(currentTarget);
+  }
+
+  function handleClick(e) {
+    if (!enabled) return;
+    if (e.composedPath().includes(shadowHost)) return; // our own UI handles its own clicks
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (pinned && e.target === currentTarget) {
+      unpin();
+      return;
+    }
+    pin(e.target);
+  }
+
+  function handleKeydown(e) {
+    if (e.key === 'Escape' && pinned) unpin();
+  }
+
+  function pin(el) {
+    pinned = true;
+    currentTarget = el;
+    panel.style.pointerEvents = 'auto';
+    showFor(el);
+    positionPanelNearElement(el);
+  }
+
+  function unpin() {
+    pinned = false;
+    currentTarget = null;
+    panel.style.pointerEvents = 'none';
+    highlightBox.style.display = 'none';
+    panel.style.display = 'none';
   }
 
   function enable() {
@@ -166,16 +265,18 @@ export function createInspector() {
     enabled = true;
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mousemove', handleMouseMove, true);
+    document.addEventListener('click', handleClick, true);
+    document.addEventListener('keydown', handleKeydown, true);
     window.addEventListener('scroll', handleScroll, true);
   }
 
   function disable() {
     enabled = false;
-    currentTarget = null;
-    if (highlightBox) highlightBox.style.display = 'none';
-    if (panel) panel.style.display = 'none';
+    unpin();
     document.removeEventListener('mouseover', handleMouseOver, true);
     document.removeEventListener('mousemove', handleMouseMove, true);
+    document.removeEventListener('click', handleClick, true);
+    document.removeEventListener('keydown', handleKeydown, true);
     window.removeEventListener('scroll', handleScroll, true);
   }
 
@@ -183,5 +284,10 @@ export function createInspector() {
     return enabled ? (disable(), false) : (enable(), true);
   }
 
-  return { enable, disable, toggle, isEnabled: () => enabled };
+  function setTheme(theme) {
+    if (!shadowHost) buildUI();
+    shadowHost.dataset.theme = theme === 'light' ? 'light' : 'dark';
+  }
+
+  return { enable, disable, toggle, isEnabled: () => enabled, setTheme };
 }

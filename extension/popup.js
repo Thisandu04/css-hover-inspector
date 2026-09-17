@@ -31,3 +31,23 @@ chrome.commands.getAll((commands) => {
     shortcutDisplay.title = 'Set one at chrome://extensions/shortcuts';
   }
 });
+
+// Theme switch
+const themeButtons = document.querySelectorAll('#theme-switch .segmented__option');
+
+function renderTheme(theme) {
+  themeButtons.forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.theme === theme);
+  });
+}
+
+chrome.storage.local.get('theme', ({ theme }) => {
+  renderTheme(theme || 'dark');
+});
+
+themeButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    chrome.storage.local.set({ theme: btn.dataset.theme });
+    renderTheme(btn.dataset.theme);
+  });
+});
