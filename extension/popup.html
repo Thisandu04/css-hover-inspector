@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CSS Hover Inspector</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+    <header class="popup__header">
+      <div class="popup__logo">
+        <span class="popup__logo-icon">◈</span>
+        <span class="popup__logo-text">CSS Hover Inspector</span>
+      </div>
+      <p class="popup__tagline">Hover any element. See the CSS instantly.</p>
+    </header>
+
+    <main class="popup__body">
+      <div class="toggle-row">
+        <div class="toggle-row__label">
+          <span id="status-text" class="status-text status-text--off">Inactive on this tab</span>
+        </div>
+        <button id="toggle-switch" class="switch" role="switch" aria-checked="false" aria-label="Toggle inspector">
+          <span class="switch__knob"></span>
+        </button>
+      </div>
+
+      <div class="hint">
+        <span class="hint__key" id="shortcut-display">Ctrl+Shift+H</span>
+        <span class="hint__text">to toggle from anywhere</span>
+      </div>
+    </main>
+
+    <footer class="popup__footer">
+      <span class="popup__version">v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
