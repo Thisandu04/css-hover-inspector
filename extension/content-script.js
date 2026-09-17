@@ -1,10 +1,18 @@
-let inspectorActive = false;
+let inspectorInstance = null;
+
+async function getInspector() {
+  if (!inspectorInstance) {
+    const moduleUrl = chrome.runtime.getURL('core/inspector.js');
+    const { createInspector } = await import(moduleUrl);
+    inspectorInstance = createInspector();
+  }
+  return inspectorInstance;
+}
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'TOGGLE_INSPECTOR') {
-    inspectorActive = message.enabled;
-    console.log('[CSS Hover Inspector] toggled:', inspectorActive);
-    // Temporary visual proof — Step 5 replaces this with the real overlay engine
-    document.body.style.outline = inspectorActive ? '3px dashed #6366f1' : 'none';
+    getInspector().then((inspector) => {
+      message.enabled ? inspector.enable() : inspector.disable();
+    });
   }
 });
