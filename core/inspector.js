@@ -1,26 +1,48 @@
-const INSPECTED_PROPERTIES = [
-  ['display', 'Display'],
-  ['position', 'Position'],
-  ['width', 'Width'],
-  ['height', 'Height'],
-  ['margin', 'Margin'],
-  ['padding', 'Padding'],
-  ['border', 'Border'],
-  ['color', 'Color'],
-  ['background-color', 'Background'],
-  ['font-family', 'Font'],
-  ['font-size', 'Font Size'],
-  ['font-weight', 'Font Weight'],
-  ['line-height', 'Line Height'],
-  ['z-index', 'Z-Index'],
-  ['box-sizing', 'Box Sizing'],
+export const PROPERTY_CATALOG = {
+  Layout: [
+    ['display', 'Display'],
+    ['position', 'Position'],
+    ['float', 'Float'],
+    ['z-index', 'Z-Index'],
+  ],
+  'Box Model': [
+    ['width', 'Width'],
+    ['height', 'Height'],
+    ['margin', 'Margin'],
+    ['padding', 'Padding'],
+    ['border', 'Border'],
+    ['box-sizing', 'Box Sizing'],
+  ],
+  Typography: [
+    ['font-family', 'Font'],
+    ['font-size', 'Font Size'],
+    ['font-weight', 'Font Weight'],
+    ['line-height', 'Line Height'],
+    ['text-align', 'Text Align'],
+  ],
+  Colors: [
+    ['color', 'Color'],
+    ['background-color', 'Background'],
+    ['opacity', 'Opacity'],
+  ],
+};
+
+export const DEFAULT_ENABLED_PROPS = [
+  'display', 'position', 'width', 'height', 'margin', 'padding',
+  'border', 'color', 'background-color', 'font-family', 'font-size',
+  'font-weight', 'line-height', 'z-index', 'box-sizing',
 ];
+
+function flattenCatalog() {
+  return Object.values(PROPERTY_CATALOG).flat();
+}
 
 export function createInspector() {
   let enabled = false;
   let pinned = false;
   let currentTarget = null;
   let shadowHost, shadowRoot, highlightBox, panel;
+  let activeProperties = flattenCatalog().filter(([prop]) => DEFAULT_ENABLED_PROPS.includes(prop));
 
   function buildUI() {
     shadowHost = document.createElement('div');
@@ -138,7 +160,7 @@ export function createInspector() {
   function renderPanel(el, computed) {
     panel.classList.toggle('panel--pinned', pinned);
 
-        const rows = INSPECTED_PROPERTIES.map(([prop, label]) => {
+            const rows = activeProperties.map(([prop, label]) => {
       const value = computed.getPropertyValue(prop) || '—';
       return `<div class="panel__row" data-prop="${prop}" data-value="${value.replace(/"/g, '&quot;')}">
         <span class="panel__prop">${label}</span>
@@ -261,6 +283,11 @@ export function createInspector() {
     panel.style.display = 'none';
   }
 
+  function setProperties(propKeys) {
+    activeProperties = flattenCatalog().filter(([prop]) => propKeys.includes(prop));
+    if (currentTarget) showFor(currentTarget); // live-refresh if a panel is already showing
+  }
+
   function enable() {
     if (enabled) return;
     if (!shadowHost) buildUI();
@@ -291,5 +318,5 @@ export function createInspector() {
     shadowHost.dataset.theme = theme === 'light' ? 'light' : 'dark';
   }
 
-  return { enable, disable, toggle, isEnabled: () => enabled, setTheme };
+    return { enable, disable, toggle, isEnabled: () => enabled, setTheme, setProperties };
 }

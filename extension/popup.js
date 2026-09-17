@@ -1,4 +1,5 @@
-// extension/popup.js
+import { PROPERTY_CATALOG, DEFAULT_ENABLED_PROPS } from '../core/inspector.js';
+
 const toggleSwitch = document.getElementById('toggle-switch');
 const statusText = document.getElementById('status-text');
 const shortcutDisplay = document.getElementById('shortcut-display');
@@ -50,4 +51,40 @@ themeButtons.forEach((btn) => {
     chrome.storage.local.set({ theme: btn.dataset.theme });
     renderTheme(btn.dataset.theme);
   });
+});
+
+// Property customization
+const settingsToggle = document.getElementById('settings-toggle');
+const settingsPanel = document.getElementById('settings-panel');
+
+function buildSettingsPanel(enabledProps) {
+  settingsPanel.innerHTML = Object.entries(PROPERTY_CATALOG).map(([groupName, props]) => `
+    <div class="settings-group">
+      <div class="settings-group__title">${groupName}</div>
+      ${props.map(([prop, label]) => `
+        <label class="settings-row">
+          <input type="checkbox" data-prop="${prop}" ${enabledProps.includes(prop) ? 'checked' : ''} />
+          <span>${label}</span>
+        </label>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function getCheckedProps() {
+  return [...settingsPanel.querySelectorAll('input[type="checkbox"]:checked')].map((cb) => cb.dataset.prop);
+}
+
+chrome.storage.local.get('properties', ({ properties }) => {
+  buildSettingsPanel(properties || DEFAULT_ENABLED_PROPS);
+});
+
+settingsToggle.addEventListener('click', () => {
+  const isOpen = settingsToggle.getAttribute('aria-expanded') === 'true';
+  settingsToggle.setAttribute('aria-expanded', String(!isOpen));
+  settingsPanel.hidden = isOpen;
+});
+
+settingsPanel.addEventListener('change', () => {
+  chrome.storage.local.set({ properties: getCheckedProps() });
 });

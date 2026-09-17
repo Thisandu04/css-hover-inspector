@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "build:bookmarklet": "node bookmarklet/build.js",
-    "watch:bookmarklet": "node bookmarklet/build.js --watch"
+    "watch:bookmarklet": "node bookmarklet/build.js --watch",
+    "generate:icons": "node scripts/generate-icons.js"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "sharp": "^0.35.4"
   }
 }

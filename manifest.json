@@ -6,7 +6,12 @@
   "permissions": ["storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "extension/popup.html"
+    "default_popup": "extension/popup.html",
+    "default_icon": {
+      "16": "extension/icons/icon-16.png",
+      "48": "extension/icons/icon-48.png",
+      "128": "extension/icons/icon-128.png"
+    }
   },
   "background": {
     "service_worker": "extension/background.js"
@@ -32,5 +37,11 @@
       },
       "description": "Toggle CSS Hover Inspector on/off"
     }
+  },
+    "icons": {
+    "16": "extension/icons/icon-16.png",
+    "48": "extension/icons/icon-48.png",
+    "128": "extension/icons/icon-128.png"
   }
 }
+
